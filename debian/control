@@ -1,0 +1,11 @@
+Source: fll-gfx
+Section: misc
+Priority: optional
+Maintainer: Andreas Weber <andreas@it-weber.com>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.0
+
+Package: fll-gfx
+Architecture: all
+Depends: module-assistant, build-essential, bzip2
+Description: An automatic Module Builder for the nvidia Driver.

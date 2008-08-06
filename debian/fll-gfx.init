@@ -1,0 +1,147 @@
+#!/bin/sh
+#set -x
+### BEGIN INIT INFO
+# Provides:          fll-gfx
+# Required-Start:    $local_fs
+# Required-Stop:     $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 6
+# Short-Description: Installs nvidia Kernel Module for new Kernels
+### END INIT INFO
+
+#
+# Copyright (c) 2008, Andreas Weber <andreas@it-weber.com>
+#
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+NAME="fll-gfx"
+DESC="Installs nvidia Kernel Module for new Kernels"
+
+. /lib/lsb/init-functions
+
+detect()
+{
+	CARDFULL=$(lspci -nn | grep 'VGA')
+	CARDDESC=$(lspci -nn | grep 'VGA' | cut -d ':' -f 3-4 | cut -d ' ' -f 2-50 | cut -d '[' -f1)
+	CARDID=$(lspci -nn | grep 'VGA' | cut -d ':' -f 3-4 | cut -d ' ' -f 2-50 | cut -d '[' -f2 | cut -d ']' -f1)
+	CARDBRAND=$(lspci -nn | grep 'VGA' | cut -d ':' -f 3-4 | cut -d ' ' -f 2-50 | cut -d '[' -f2 | cut -d ']' -f1 | cut -d ':' -f1)
+
+	case ${CARDBRAND} in
+		10de|12d2)
+			log_action_msg " * Detected a NVIDIA Card"
+			MODULE="nvidia"
+			predeb="nvidia-kernel-source"
+			postdeb="nvidia-kernel-common	
+				nvidia-glx
+				nvidia-settings"
+			local INSTALLED=$(dpkg-query -f '${Status}\n' -W "nvidia-kernel-$(uname -r)" 2>/dev/null)
+			if [ ! "${ACTION}" = "force" ]; then
+				case "${INSTALLED}" in
+					*\ ok\ installed)
+					;;
+					*)
+						log_action_msg " * nvidia-kernel-$(uname -r) already installed"
+						exit 0
+					;;
+				esac
+			fi
+			;;
+		1002)
+			log_action_msg " * Detected a ATI/AMD Card"
+			MODULE="fglrx"
+			predeb="fglrx-source"
+			postdeb=""
+			;;
+		*)
+			;;
+	esac
+
+	if [ -z "${MODULE}" ]; then
+		log_failure_msg " * No NVIDIA or ATI/AMD Card found."
+		exit 0
+	fi
+
+}
+
+autoinstall()
+{
+	local query
+
+	log_action_msg " * Checking Module Dependencies"
+	for deb in ${predeb}; do
+		query="$(dpkg-query -f '${Status}\n' -W ${deb} 2>/dev/null)"
+		case "${query}" in
+			*\ ok\ installed)
+			;;
+                        *)
+				log_action_begin_msg " * Installing ${deb}\n"
+                        	apt-get -y install ${deb} >/dev/null 2>&1
+				if [ "$?" = 0 ]; then
+					log_action_end_msg "0"
+				else
+					log_action_end_msg "1"
+					exit 0
+				fi
+			;;
+		esac
+	done
+	
+	log_action_begin_msg " * Build and Install Module"
+	m-a a-i -if -l "${KVER}" "${MODULE}" >/dev/null 2>&1
+	case "$?" in
+		0|249)
+			log_action_end_msg "0"
+		;;
+		*)
+			log_action_end_msg "1"
+		;;
+	esac
+
+	log_action_msg " * Preinstallation Tasks"
+	for deb in ${postdeb}; do 
+		query="$(dpkg-query -f '${Status}\n' -W ${deb} 2>/dev/null)"
+		case "${query}" in	
+			*\ ok\ installed)
+			;;       
+		
+			*)               
+				log_action_begin_msg " * Install ${deb}"
+				apt-get -y install ${deb} >/dev/null 2>&1
+				if [ "$?" = 0 ]; then
+					log_action_end_msg "Done"
+				else
+				        log_action_end_msg "Failed"
+				fi
+			;;       
+		esac
+	done
+}
+
+case "${1}" in
+	start|build|force)
+		ACTION=${1}
+		KVER="$(uname -r)"
+
+		log_action_msg "Starting ${NAME}"
+
+		if [ ! -e /lib/modules/${KVER}/build ]; then
+			log_failure_msg " * Failed to locate linux-headers-${KVER}..."
+			exit 0
+		fi
+		detect
+		autoinstall
+		;;
+	stop)
+		find /var/run/${NAME} -delete
+		;;
+	restart|force-reload)
+		echo "Error: argument '${1}' not supported" >&2
+		exit 3
+		;;
+	*)
+		echo "Usage: ${NAME} {start|stop}" >&2
+		exit 3
+		;;
+esac
+
+:
