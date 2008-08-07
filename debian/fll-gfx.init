@@ -21,10 +21,9 @@ DESC="Installs nvidia Kernel Module for new Kernels"
 
 detect()
 {
-	CARDFULL=$(lspci -nn | grep 'VGA')
-	CARDDESC=$(lspci -nn | grep 'VGA' | cut -d ':' -f 3-4 | cut -d ' ' -f 2-50 | cut -d '[' -f1)
-	CARDID=$(lspci -nn | grep 'VGA' | cut -d ':' -f 3-4 | cut -d ' ' -f 2-50 | cut -d '[' -f2 | cut -d ']' -f1)
-	CARDBRAND=$(lspci -nn | grep 'VGA' | cut -d ':' -f 3-4 | cut -d ' ' -f 2-50 | cut -d '[' -f2 | cut -d ']' -f1 | cut -d ':' -f1)
+	BUSID=$(lspci -nn | grep 'VGA' | cut -d ' ' -f 1)
+	CARDID=$(lspci -n | grep "${BUSID}" | cut -d ' ' -f3 | cut -d ':' -f2)
+	CARDBRAND=$(lspci -n | grep "${BUSID}" | cut -d ' ' -f3 | cut -d ':' -f1)
 
 	case ${CARDBRAND} in
 		10de|12d2)
@@ -35,14 +34,14 @@ detect()
 			postdeb="nvidia-kernel-common	
 				nvidia-glx
 				nvidia-settings"
-			local INSTALLED=$(dpkg-query -f '${Status}\n' -W "nvidia-kernel-$(uname -r)" 2>/dev/null)
+			local INSTALLED=$(dpkg-query -f '${Status}\n' -W "nvidia-kernel-$(uname -r)" | cut -d ' ' -f3 2>/dev/null)
 			if [ ! "${ACTION}" = "force" ]; then
-				case "${INSTALLED}" in
-					*\ ok\ installed)
-					;;
-					*)
+				case ${INSTALLED} in
+					installed)
 						log_action_msg " * nvidia-kernel-$(uname -r) already installed"
 						exit 0
+					;;
+					not-installed)
 					;;
 				esac
 			fi
