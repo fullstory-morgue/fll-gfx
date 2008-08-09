@@ -68,13 +68,32 @@ autoinstall()
 {
 	local query
 
-	log_action_msg " * Checking Module Dependencies"
+	log_action_begin_msg " * Checking Apt Sources for contrib and non-free Section"
+	grep "non-free" /etc/apt/sources.list.d/debian.list 1>/dev/null || 	wget -O /etc/apt/sources.list.d/debian.list http://sidux.com/files/misc/sources.list.d/debian.list 
+	grep "contrib" /etc/apt/sources.list.d/debian.list 1>/dev/null ||  wget -O /etc/apt/sources.list.d/debian.list http://sidux.com/files/misc/sources.list.d/debian.list
+	grep "non-free" /etc/apt/sources.list.d/sidux.list 1>/dev/null || wget -O /etc/apt/sources.list.d/sidux.list http://sidux.com/files/misc/sources.list.d/sidux.list
+	grep "contrib" /etc/apt/sources.list.d/sidux.list 1>/dev/null || wget -O /etc/apt/sources.list.d/sidux.list http://sidux.com/files/misc/sources.list.d/sidux.list
+	log_action_end_msg "0"
+	
+	log_action_begin_msg " * Running apt-get update"
+	apt-get update >/dev/null 2>&1 
+	if [ "$?" = "0" ]; then
+		log_action_end_msg "0"
+	else
+		log_action_end_msg "1"
+		exit 0
+	fi
+
+	log_action_begin_msg " * Checking Module Dependencies"
+	DEPS=0
 	for deb in ${predeb}; do
 		query="$(dpkg-query -f '${Status}\n' -W ${deb} 2>/dev/null)"
 		case "${query}" in
 			*\ ok\ installed)
 			;;
                         *)
+				DEPS=1
+				log_action_end_msg "0"
 				log_action_begin_msg " * Installing ${deb}\n"
                         	apt-get -y install ${deb} >/dev/null 2>&1
 				if [ "$?" = 0 ]; then
@@ -86,6 +105,9 @@ autoinstall()
 			;;
 		esac
 	done
+	if [ "$DEPS" = 0 ]; then
+		log_action_end_msg "0"
+	fi
 	
 	log_action_begin_msg " * Build and Install Module"
 	m-a a-i -if -l "${KVER}" "${MODULE}" >/dev/null 2>&1
