@@ -69,7 +69,7 @@ autoinstall()
 	local query
 
 	log_action_begin_msg " * Checking Apt Sources for contrib and non-free Section"
-	grep "non-free" /etc/apt/sources.list.d/debian.list 1>/dev/null || 	wget -O /etc/apt/sources.list.d/debian.list http://sidux.com/files/misc/sources.list.d/debian.list 
+	grep "non-free" /etc/apt/sources.list.d/debian.list 1>/dev/null || wget -O /etc/apt/sources.list.d/debian.list http://sidux.com/files/misc/sources.list.d/debian.list 
 	grep "contrib" /etc/apt/sources.list.d/debian.list 1>/dev/null ||  wget -O /etc/apt/sources.list.d/debian.list http://sidux.com/files/misc/sources.list.d/debian.list
 	grep "non-free" /etc/apt/sources.list.d/sidux.list 1>/dev/null || wget -O /etc/apt/sources.list.d/sidux.list http://sidux.com/files/misc/sources.list.d/sidux.list
 	grep "contrib" /etc/apt/sources.list.d/sidux.list 1>/dev/null || wget -O /etc/apt/sources.list.d/sidux.list http://sidux.com/files/misc/sources.list.d/sidux.list
@@ -131,9 +131,9 @@ autoinstall()
 				log_action_begin_msg " * Install ${deb}"
 				apt-get -y install ${deb} >/dev/null 2>&1
 				if [ "$?" = 0 ]; then
-					log_action_end_msg "Done"
+					log_action_end_msg "0"
 				else
-				        log_action_end_msg "Failed"
+				        log_action_end_msg "1"
 				fi
 			;;       
 		esac

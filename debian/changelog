@@ -2,8 +2,9 @@ fll-gfx (0.3) UNRELEASED; urgency=low
 
   * contrib and non-free Handling added.
   * Console-Output fixed.
+  * log_action_end_msg fixed to return integer 
 
- -- Andreas Weber <andreas@it-weber.com>  Sat, 09 Aug 2008 21:18:36 +0200
+ -- Andreas Weber <andreas@it-weber.com>  Wed, 13 Aug 2008 20:33:32 +0200
 
 fll-gfx (0.2) UNRELEASED; urgency=low
 
