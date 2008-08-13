@@ -1,3 +1,9 @@
+fll-gfx (0.4) UNRELEASED; urgency=low
+
+  * Disclaimer and ConfigFile Handling added. 
+
+ -- Andreas Weber <andreas@it-weber.com>  Wed, 13 Aug 2008 21:23:40 +0200
+
 fll-gfx (0.3) UNRELEASED; urgency=low
 
   * contrib and non-free Handling added.

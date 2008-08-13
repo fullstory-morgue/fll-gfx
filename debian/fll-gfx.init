@@ -16,8 +16,61 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 NAME="fll-gfx"
 DESC="Installs nvidia Kernel Module for new Kernels"
+CFG="/etc/default/fll-gfx"
 
 . /lib/lsb/init-functions
+
+getCfg()
+{
+	local KEY=$1
+	local r1=$(grep ${KEY} ${CFG} | cut -d '=' -f2)
+	cfgreturn="${r1}"
+}
+
+showDisclaimer()
+{
+cat \
+<<EOF
+-----------
+DISCLAIMER:
+-----------
+
+This Script will install non-free Drivers for Nvidia and ATI GFX Cards.
+Please read there License Agreement before you use this Script.
+
+This Script will use the contrib and non-free Repositorys
+from Debian and Sidux to install the Drivers.
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this package; if not, write to the Free Software 
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, 
+MA 02110-1301, USA.
+
+On Debian GNU/Linux systems, the text of the GPL license can be
+found in /usr/share/common-licenses/GPL.
+
+Use this Script at your own Risk!
+
+EOF
+echo "Do you agree (y/n)?"
+read AGREE
+if [ ! "${AGREE}" = "y" ]; then
+	echo "Aborting."
+	exit 1
+fi
+grep "DISCLAIMER" ${CFG} || echo "\nDISCLAIMER=1" >> ${CFG}
+sed -i -r 's|^\s*DISCLAIMER\s*\=\s*.*|DISCLAIMER\=1|' ${CFG}
+}
 
 detect()
 {
@@ -149,6 +202,11 @@ case "${1}" in
 
 		log_action_msg "Starting ${NAME}"
 
+		getCfg "DISCLAIMER"
+		if [ ! "${cfgreturn}" = "1" ]; then
+			showDisclaimer
+		fi
+
 		if [ ! -e /lib/modules/${KVER}/build ]; then
 			log_failure_msg " * Failed to locate linux-headers-${KVER}..."
 			exit 0
@@ -162,6 +220,10 @@ case "${1}" in
 	restart|force-reload)
 		echo "Error: argument '${1}' not supported" >&2
 		exit 3
+		;;
+	test)
+		# This method is just fpr testing purpose and will be removed later
+		sed -i -r 's|^\s*DISCLAIMER\s*\=\s*.*|DISCLAIMER\=0|' ${CFG}
 		;;
 	*)
 		echo "Usage: ${NAME} {start|stop|build|force}" >&2
