@@ -1,0 +1,45 @@
+#!/bin/bash
+if [ ! "${UID}" = "0" ]; then
+	echo "You must be root to run this program."
+	exit 1
+fi
+
+if [ "$1" = "" ]; then
+	echo "Usage: fll-gfx (-b --build | -f --force)"
+	exit 1
+fi
+
+ARGS=$(
+	getopt \
+		--name "fll-gfx" \
+		--options bfi \
+		--long build,fore,info \
+		-- $@
+)
+
+eval set -- "$ARGS"
+
+while true; do
+	case $1 in
+		-b|--build) 
+			/etc/init.d/fll-gfx build
+			;;
+		-f|--force)
+			/etc/init.d/fll-gfx force
+			;;
+		-i|--info)
+			echo "fll-gfx"
+			echo "by Andreas Weber <andreas@it-weber.com>"
+			echo ""
+			;;
+		--)
+			shift
+			break
+			;;
+		*)
+			shift
+			break
+			;;
+	esac
+	shift
+done
