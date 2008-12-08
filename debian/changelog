@@ -1,3 +1,10 @@
+fll-gfx (0.5+nmu1) UNRELEASED; urgency=low
+
+  * Non-maintainer upload.
+  * make lintian happy and depend on ${misc:Depends}.
+
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 08 Dec 2008 02:36:51 +0100
+
 fll-gfx (0.5) UNRELEASED; urgency=low
 
   * fll-gfx Script added to run Interactiv (Wrapper for the Init Script). 

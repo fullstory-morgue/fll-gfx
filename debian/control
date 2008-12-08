@@ -7,5 +7,8 @@ Standards-Version: 3.8.0
 
 Package: fll-gfx
 Architecture: all
-Depends: module-assistant, build-essential, bzip2
+Depends: ${misc:Depends},
+         module-assistant,
+         build-essential,
+         bzip2
 Description: An automatic Module Builder for the nvidia Driver.
